@@ -1,0 +1,22 @@
+# for scripts
+.DS_Store
+*.DS_Store
+
+*.old
+*.json
+*.csr
+*.crt
+*.key
+*.pem
+*.log
+*.swp
+*.snapshot
+root*
+unseal*
+recovery*
+request*
+data/
+root_inter_certs/
+template.*
+*.snap
+snap*
