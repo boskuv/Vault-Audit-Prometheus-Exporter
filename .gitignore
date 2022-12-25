@@ -1,3 +1,6 @@
+# custom for project
+*.ini
+ 
 # for scripts
 .DS_Store
 *.DS_Store

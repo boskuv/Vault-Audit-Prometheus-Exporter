@@ -1,0 +1,2 @@
+[vault]
+audit_file = /home/user/Projects/vault/audit/vault_audit.log
