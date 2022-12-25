@@ -1,5 +1,8 @@
 # Vault-Audit-Prometheus-Exporter
 
+https://developer.hashicorp.com/vault/tutorials/monitoring/monitor-telemetry-audit-splunk
+https://developer.hashicorp.com/vault/tutorials/monitoring/usage-metrics
+
 type: The type of an audit entry, either "request" or "response". For a successful request, there will always be two events. The audit log event of type "response" will include the "request" structure, and will have all the same data as a request entry. For successful requests you can do all your searching on the events with type "response".
 
 request.path: The path of an API request (request|response).mount_type: The type of the mount that handles this request or response.
