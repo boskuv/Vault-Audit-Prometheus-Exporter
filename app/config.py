@@ -23,14 +23,15 @@ def load_config(path: str):
     config = configparser.ConfigParser()
     config.read(path)
 
+    # check if valid
     vault_configuration = config["vault"]
-    prometheus_configuration = config["port"]
+    prometheus_configuration = config["prometheus"]
 
     return Config(
         vault=Vault(
             audit_file=vault_configuration.get("audit_file"),
         ),
         prometheus=Prometheus(
-            port=prometheus_configuration.get("port"),
+            port=prometheus_configuration.getint("port"),
         ),
     )
