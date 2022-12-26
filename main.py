@@ -1,4 +1,3 @@
-
 import time
 
 from prometheus_client import start_http_server
@@ -22,11 +21,10 @@ from prometheus_client import Counter
 """
 
 
-
 if __name__ == "__main__":
     config = load_config("exporter.ini")  # check if exists + sys.argv[1] of default
 
-    start_http_server(8000)
+    start_http_server(config.prometheus.port)
 
     event_handler = analyze_audit_file.AuditFileHandler(config.vault.audit_file)
     observer = check_file_changes.FileObserver(

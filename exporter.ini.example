@@ -1,2 +1,5 @@
 [vault]
 audit_file = /home/user/Projects/vault/audit/vault_audit.log
+
+[prometheus]
+port = 8000

@@ -9,8 +9,14 @@ class Vault:
 
 
 @dataclass
+class Prometheus:
+    port: int
+
+
+@dataclass
 class Config:
     vault: Vault
+    prometheus: Prometheus
 
 
 def load_config(path: str):
@@ -18,9 +24,13 @@ def load_config(path: str):
     config.read(path)
 
     vault_configuration = config["vault"]
+    prometheus_configuration = config["port"]
 
     return Config(
         vault=Vault(
             audit_file=vault_configuration.get("audit_file"),
+        ),
+        prometheus=Prometheus(
+            port=prometheus_configuration.get("port"),
         ),
     )
