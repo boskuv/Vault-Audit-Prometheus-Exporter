@@ -8,9 +8,10 @@ from app.handlers import check_file_changes, analyze_audit_file
 
 """
 TODO
-- rotation
+- audit file rotation
 - compare hash tmp and log
-- count metrics
+- yaml config
+- test counter auto renew in prometheus
 - /home/user/Projects/vault/Vault-Audit-Prometheus-Exporter/app/handlers/analyze_audit_file.py:32: FutureWarning: The frame.append method is deprecated and will be removed from pandas in a future version. Use pandas.concat instead.
 
 from app.db.db import *
@@ -22,14 +23,16 @@ from prometheus_client import Counter
 
 
 if __name__ == "__main__":
-    config = load_config("exporter.ini")  # check if exists + sys.argv[1] of default
+    config = load_config("exporter.ini")  # TODO: 1) check if exists 2) sys.argv[1] or default
 
     start_http_server(config.prometheus.port)
 
-    event_handler = analyze_audit_file.AuditFileHandler(config.vault.audit_file)
+    event_handler = analyze_audit_file.AuditFileModificationHandler(
+        config.vault.audit_file
+    )
     observer = check_file_changes.FileObserver(
         event_handler, config.vault.audit_file
-    )  # check if exists
+    )  # TODO: check if exists
     observer.start()
 
     try:
