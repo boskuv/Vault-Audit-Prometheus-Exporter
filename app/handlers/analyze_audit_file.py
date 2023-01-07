@@ -20,14 +20,14 @@ class AuditFileModificationHandler(FileSystemEventHandler):
             df = self.audit_file_analyzer.read_audit_file_to_df(
                 self.__audit_file_path, self.line_offset
             )
+
+            # TODO: if df is not None
             if len(df):
                 self.audit_file_analyzer.count_metrics_from_df(df)
 
                 self.line_offset = self.audit_file_analyzer.count_lines_in_file(
                     self.__audit_file_path
                 )
-
-                print(df)  # TODO: refactor
 
 
 class AuditFileAnalyzer:
@@ -45,30 +45,41 @@ class AuditFileAnalyzer:
             "remote_addresses", "IP used in requests counter", ["remote_address"]
         )
 
-    def read_audit_file_to_df(self, file_path, line_offset):  # TODO: try / except
+    def read_audit_file_to_df(self, file_path, line_offset):
         df = pandas.DataFrame()
 
-        with open(file_path) as data_file:
-            for json_obj in data_file.readlines()[line_offset:]:
-                unfilteres_df = pandas.json_normalize(json.loads(json_obj))
-                unfilteres_df.drop(
-                    unfilteres_df.filter(regex="^(?:response|request).data.*").columns,
-                    axis=1,
-                    inplace=True,
-                )
-                df = df.append(unfilteres_df)  # TODO: refactor
+        try:
+            with open(file_path) as data_file:
+                for json_obj in data_file.readlines()[line_offset:]:
+                    # TODO: try / except
+                    unfiltered_df = pandas.json_normalize(json.loads(json_obj))
+                    unfiltered_df.drop(
+                        unfiltered_df.filter(regex="^(?:response|request).data.*").columns,
+                        axis=1,
+                        inplace=True,
+                    )
+                    df = df.append(unfiltered_df)  # TODO: refactor pandas.concat
+        except FileNotFoundError:
+            # TODO: logging
+            df = None
         return df
 
-    def count_metrics_from_df(self, df):  # TODO: try / except
+    def count_metrics_from_df(self, df):
         # count responses and requests
-        for message_type, amount in (
-            df[["type"]].value_counts().to_dict().items()
-        ):  # message_type: tuple with the only element
-            self.message_type.labels(message_type[0]).inc(amount)
+        try:
+            for message_type, amount in (
+                df[["type"]].value_counts().to_dict().items()
+            ):  # message_type: tuple with the only element
+                self.message_type.labels(message_type[0]).inc(amount)
+        except Exception as ex:
+            print() # TODO: logging
 
         # count errors
-        for _, line in df.query("error.notnull()", engine="python").iterrows():
-            self.errors.labels(line["type"], line["request.path"], line["error"]).inc()
+        try:
+            for _, line in df.query("error.notnull()", engine="python").iterrows():
+                self.errors.labels(line["type"], line["request.path"], line["error"]).inc()
+        except Exception as ex:
+            print() # TODO: logging
 
         # for error_request_path, amount in (
         #     df.query("error.notnull()", engine="python")["request.path"]
@@ -83,10 +94,13 @@ class AuditFileAnalyzer:
         #     self.policies.labels(policy).inc(amount)
 
         # count ip addresses from request
-        for remote_address, amount in (
-            df["request.remote_address"].value_counts().to_dict().items()
-        ):
-            self.remote_addresses.labels(remote_address).inc(amount)
+        try:
+            for remote_address, amount in (
+                df["request.remote_address"].value_counts().to_dict().items()
+            ):
+                self.remote_addresses.labels(remote_address).inc(amount)
+        except Exception as ex:
+            print() # TODO: logging
 
         # TODO: count request.operation
 

@@ -25,7 +25,7 @@ hasher("")
 
 if __name__ == "__main__":
     config = load_config(
-        "exporter.init"
+        "exporter.ini"
     )  # TODO: 1) check if exists 2) sys.argv[1] or default
 
     # logger = customize_logging(
