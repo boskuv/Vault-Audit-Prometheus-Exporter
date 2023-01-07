@@ -4,6 +4,7 @@ from pathlib import Path
 from prometheus_client import start_http_server
 
 from app.config import load_config
+from app.utils.cmd import resolve_cmd_args
 from app.utils.logger import customize_logging
 from app.handlers import check_file_changes, analyze_audit_file
 
@@ -24,9 +25,13 @@ hasher("")
 
 
 if __name__ == "__main__":
+    options = resolve_cmd_args()
+
+    path_to_config = options.config
+
     config = load_config(
-        "exporter.ini"
-    )  # TODO: 1) check if exists 2) sys.argv[1] or default
+        path_to_config
+    )  # TODO: check if exists
 
     # logger = customize_logging(
     #     filepath=Path(config.logging.path),
