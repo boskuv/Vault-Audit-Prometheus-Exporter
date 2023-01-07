@@ -1,10 +1,8 @@
 import pandas
 from watchdog.events import FileSystemEventHandler
-from prometheus_client import Gauge, Counter
+from prometheus_client import Counter
 
-import os
 import json
-import sys
 
 
 class AuditFileModificationHandler(FileSystemEventHandler):
@@ -29,7 +27,7 @@ class AuditFileModificationHandler(FileSystemEventHandler):
                     self.__audit_file_path
                 )
 
-                print(df)
+                print(df)  # TODO: refactor
 
 
 class AuditFileAnalyzer:
@@ -37,8 +35,14 @@ class AuditFileAnalyzer:
         self.message_type = Counter(
             "message_type", "Responses and requests counter", ["type"]
         )
-        self.errors_by_paths = Counter(
-            "errors", "Errors grouped by paths counter", ["request_path"]
+        self.errors = Counter(
+            "errors",
+            "Responses and requests errors with paths and descriptions counter",
+            ["type", "request_path", "description"],
+        )
+        self.policies = Counter("policies", "Policies used counter", ["policy"])
+        self.remote_addresses = Counter(
+            "remote_addresses", "IP used in requests counter", ["remote_address"]
         )
 
     def read_audit_file_to_df(self, file_path, line_offset):  # TODO: try / except
@@ -52,29 +56,47 @@ class AuditFileAnalyzer:
                     axis=1,
                     inplace=True,
                 )
-                df = df.append(unfilteres_df)
+                df = df.append(unfilteres_df)  # TODO: refactor
         return df
 
-    def count_metrics_from_df(self, df): # TODO: try / except
+    def count_metrics_from_df(self, df):  # TODO: try / except
         # count responses and requests
-        for message_type, amount in df[["type"]].value_counts().to_dict().items():
+        for message_type, amount in (
+            df[["type"]].value_counts().to_dict().items()
+        ):  # message_type: tuple with the only element
             self.message_type.labels(message_type[0]).inc(amount)
 
-        # count errors grouped by paths
-        # TODO: only request or response
-        for error_request_path, amount in (
-            df.query("error.notnull()", engine="python")["request.path"]
-            .value_counts()
-            .to_dict()
-            .items()
-        ):
-            self.errors_by_paths.labels(error_request_path).inc(amount)
+        # count errors
+        for _, line in df.query("error.notnull()", engine="python").iterrows():
+            self.errors.labels(line["type"], line["request.path"], line["error"]).inc()
 
-    def count_lines_in_file(self, file_path): # TODO: try / except
+        # for error_request_path, amount in (
+        #     df.query("error.notnull()", engine="python")["request.path"]
+        #     .value_counts()
+        #     .to_dict()
+        #     .items()
+        # ):
+        #     self.errors_by_paths.labels(error_request_path).inc(amount)
+
+        # count policies used
+        # for policy, amount in df[['auth.token_policies']].value_counts().to_dict().items():
+        #     self.policies.labels(policy).inc(amount)
+
+        # count ip addresses from request
+        for remote_address, amount in (
+            df["request.remote_address"].value_counts().to_dict().items()
+        ):
+            self.remote_addresses.labels(remote_address).inc(amount)
+
+        # TODO: count request.operation
+
+    def count_lines_in_file(self, file_path):  # TODO: try / except
         with open(file_path) as data_file:
             return len(data_file.readlines())
 
 
+# import os
+# import sys
 # if os.path.isdir(logs_path):
 #     print(f"{logs_path} is a dir. Parse all files inside it")
 #     for dir_name, subdirs, files in os.walk(logs_path):
