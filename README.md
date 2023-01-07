@@ -14,3 +14,9 @@ request.operation: The operation performed (eg read, create, delete...) auth: Th
 error: Populated (non-empty) if the response was an error, this field contains the error message.
 
 response.data: In the case of a successful response, many will contain a data field corresponding to what was returned to the caller. Most fields will be masked with HMAC when sensitive.
+
+./raft.sh start
+export VAULT_ADDR=http://127.0.0.1:8200
+get root token
+vault audit enable file file_path=//home/user/Projects/vault/Vault-Audit-Prometheus-Exporter/scripts/vault_audit.log
+
